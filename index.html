@@ -21,10 +21,21 @@
 	h1 {
 		font-family: sans-serif;
 	}
+	.sliderDiv {
+		width: 950px;
+		height: 25px;
+	}
+	.slider {
+	margin-left: 50px;
+	width: 900px !important;
+	}
 
 	</style>
 </head>
 <body>
+	<h1>US Wildfires</h1>
+	<div class="mainMap"></div><br/>
+	<div class="sliderDiv"></div>
 	<script type="text/javascript">
 
 	var width = 950,
@@ -34,32 +45,52 @@
 	var projection = d3.geo.mercator();
 
 	// create path variable
-	var path = d3.geo.path()
-	    .projection(projection);
+	var path = d3.geo.path().projection(projection);
 
 	// Maps fire class to a radius size
 	var firesize_class_radius = { "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7 };
+	var curr_zoom_translate = [0,0];
+	var curr_zoom_scale = 1;
 
-	// Maps cause of fire to a color
-
+	// set projection parameters
+	projection
+		.scale(900)
+		.center([-100, 40.5])
+	console.log(projection)
 
 	d3.json("data/us.json", function(error, topo) { 
 		d3.csv("data/wildfires_10k_sample.csv", function(error, data) {
-			console.log(data);
 
-		  	states = topojson.feature(topo, topo.objects.states).features
-
-		  	// set projection parameters
-		  	projection
-		      .scale(900)
-		      .center([-100, 40.5])
-
-		    // create svg variable
-		    var svg = d3.select("body").append("svg")
+			// create svg variable
+		    var svg = d3.select(".mainMap").append("svg")
 		    				.attr("width", width)
 		    				.attr("height", height);
 
 		    var g = svg.append("g");
+
+			// Add slider
+			var slider =  d3.select(".sliderDiv").append("input")
+				.attr("class", "slider")
+				.attr("type", "range")
+		    	.attr("id", "yearSlider")
+		    	.attr("min", 2000)
+		    	.attr("max", 2015)
+		    	;
+
+		    d3.select("#yearSlider").on("input", function() {
+		    	console.log(curr_zoom_translate);
+		    	console.log(curr_zoom_scale);
+				drawPoints(data, parseInt(this.value));
+			});
+
+			drawMap(topo, g);
+			drawPoints(data, 2000);
+		});
+
+		var drawMap = function(topo) {
+		  	states = topojson.feature(topo, topo.objects.states).features;
+
+		  	var g = d3.select("svg").select("g");
 
 			// add states from topojson
 			g.selectAll("path")
@@ -75,29 +106,50 @@
 		      .attr("class", "mesh")
 		      .attr("d", path);
 
-		    // add circles to svg
-		    g.selectAll("circle")
-				.data(data).enter()
-				.append("circle")
-				.attr("cx", function (d) { return projection([d.LONGITUDE, d.LATITUDE])[0]; })
-				.attr("cy", function (d) { return projection([d.LONGITUDE, d.LATITUDE])[1]; })
-				.attr("r", function (d) { return firesize_class_radius[d.FIRE_SIZE_CLASS]; })
-				.attr("fill", function(d) { return "red"});
-
-			// zooming and panning
+		     			// zooming and panning
 			var zoom = d3.behavior.zoom()
-			    .on("zoom",function() {
+			    .on("zoom",function(){
+			    	curr_zoom_translate = d3.event.translate;
+			    	curr_zoom_scale = d3.event.scale;
+			    	console.log(curr_zoom_translate);
+		    		console.log(curr_zoom_scale);
+			    	zoomTo(curr_zoom_translate, curr_zoom_scale);
+			    });
+
+			var zoomTo = function(translate, scale) {
 			        g.attr("transform","translate("+ 
-			            d3.event.translate.join(",")+")scale("+d3.event.scale+")");
+			            translate.join(",")+")scale("+scale+")");
 			        g.selectAll("circle")
 			            .attr("d", path.projection(projection));
 			        g.selectAll("path")  
 			            .attr("d", path.projection(projection)); 
+			};
 
+			d3.select("svg").call(zoom);
+			zoomTo(curr_zoom_translate, curr_zoom_scale);
+		}
+
+		var drawPoints = function(data, year, g) {
+			var filtered_data = data.filter(function(d) {
+				return d.FIRE_YEAR == year;
 			});
-			svg.call(zoom);
 
-		});
+			var g = d3.select("svg").select("g");
+
+			// Remove all previously drawn circles
+			g.selectAll("circle").remove();
+
+		    // add circles to svg
+		    g.selectAll("circle")
+				.data(filtered_data)
+				.enter()
+				.append("circle")
+				.attr("cx", function (d) { return projection([d.LONGITUDE, d.LATITUDE])[0]; }) // Sets location of the wildfire datapoint
+				.attr("cy", function (d) { return projection([d.LONGITUDE, d.LATITUDE])[1]; }) // Sets location of the wildfire datapoint
+				.attr("r", function (d) { return firesize_class_radius[d.FIRE_SIZE_CLASS]; })  // Sets radius of the wildfire datapoint
+				.attr("fill", function(d) { return "red"});									   // Sets fill of the wildfire datapoint
+
+		}
 	});
 
 	</script>
