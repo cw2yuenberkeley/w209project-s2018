@@ -10,13 +10,13 @@
 		fill: none;
 		stroke: grey;
 		stroke-width: 1px;
-  		stroke-linejoin: round;
+		stroke-linejoin: round;
 	}
 	.mesh {
 		fill: none;
-  		stroke: lightgrey;
-  		stroke-width: 2px;
-  		stroke-linejoin: round;
+		stroke: darkgrey;
+		stroke-width: 2px;
+		stroke-linejoin: round;
 	}
 	h1 {
 		font-family: sans-serif;
@@ -33,13 +33,39 @@
 	</style>
 </head>
 <body>
-	<h1>US Wildfires</h1>
+	<h1 id="title">US Wildfires</h1>
 	<div class="mainMap"></div><br/>
 	<div class="sliderDiv"></div>
+	<div class="weatherChart"></div>
+	<div class="dataChart"></div>
 	<script type="text/javascript">
 
-	var width = 950,
-	    height = 550;
+	var map_width = 950,
+		map_height = 550;
+
+	// Maps fire class to a radius size
+	var firesize_class_radius = { "A": 3,
+								  "B": 5, 
+								  "C": 7, 
+								  "D": 9, 
+								  "E": 11, 
+								  "F": 13, 
+								  "G": 15 };
+
+	// Define possible fire causes (to use for colors)
+	var fire_causes_color_map = { "Debris Burning": "#e6194b",
+					              "Miscellaneous": "#3cb44b",
+					              "Arson": "#ffe119",
+					              "Lightning": "#0082c8",
+					              "Missing/Undefined": "#f58231",
+					              "Equipment Use": "#911eb4",
+					              "Campfire": "#46f0f0",
+					              "Children": "#f032e6",
+					              "Smoking": "#d2f53c",
+					              "Railroad": "#fabebe",
+					              "Powerline": "#008080",
+					              "Fireworks": "#e6beff",
+					              "Structure": "#aa6e28"};
 
 	// set projection
 	var projection = d3.geo.mercator();
@@ -47,111 +73,176 @@
 	// create path variable
 	var path = d3.geo.path().projection(projection);
 
-	// Maps fire class to a radius size
-	var firesize_class_radius = { "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7 };
-	var curr_zoom_translate = [0,0];
-	var curr_zoom_scale = 1;
-
 	// set projection parameters
 	projection
 		.scale(900)
-		.center([-100, 40.5])
-	console.log(projection)
+		.center([-100, 40.5]);
+
+	// Draw color legend
+		for (var cause in fire_causes_color_map) {
+			if (fire_causes_color_map.hasOwnProperty(cause)) {   
+				c = fire_causes_color_map[cause];        
+    			console.log(cause, c);
+			}
+		}
 
 	d3.json("data/us.json", function(error, topo) { 
 		d3.csv("data/wildfires_10k_sample.csv", function(error, data) {
+			console.log(data);
 
 			// create svg variable
-		    var svg = d3.select(".mainMap").append("svg")
-		    				.attr("width", width)
-		    				.attr("height", height);
+			var svg = d3.select(".mainMap").append("svg")
+							.attr("width", map_width)
+							.attr("height", map_height);
 
-		    var g = svg.append("g");
+			var g = svg.append("g");
 
 			// Add slider
 			var slider =  d3.select(".sliderDiv").append("input")
 				.attr("class", "slider")
 				.attr("type", "range")
-		    	.attr("id", "yearSlider")
-		    	.attr("min", 2000)
-		    	.attr("max", 2015)
-		    	;
+				.attr("id", "yearSlider")
+				.attr("min", 2000)
+				.attr("max", 2015)
+				.on("input", function() {
+					drawPoints(data, parseInt(this.value));
+					updateTitle(this.value);
+				});
 
-		    d3.select("#yearSlider").on("input", function() {
-		    	console.log(curr_zoom_translate);
-		    	console.log(curr_zoom_scale);
-				drawPoints(data, parseInt(this.value));
-			});
-
-			drawMap(topo, g);
+			drawMap(data, topo, path, projection);
 			drawPoints(data, 2000);
+			updateTitle(2000);
 		});
 
-		var drawMap = function(topo) {
+		var drawMap = function(data, topo, path, projection) {
 		  	states = topojson.feature(topo, topo.objects.states).features;
 
-		  	var g = d3.select("svg").select("g");
+		  	var svg = d3.select(".mainMap").select("svg");
+		  	// var r = svg.append("rect")
+		  	// 	.attr("width", map_width)
+		  	// 	.attr("height", map_height)
+		  	// 	.attr("fill", "lightblue");
+			
+			var g = svg.select("g");
 
 			// add states from topojson
 			g.selectAll("path")
-		      .data(states).enter()
-		      .append("path")
-		      .attr("class", "feature")
-		      .style("fill", "steelblue")
-		      .attr("d", path);
+				.data(states).enter()
+				.append("path")
+				.attr("class", "feature")
+				.style("fill", "white")
+				.attr("d", path);
 
-		    // put boarder around states 
-		  	g.append("path")
-		      .datum(topojson.mesh(topo, topo.objects.states, function(a, b) { return a !== b; }))
-		      .attr("class", "mesh")
-		      .attr("d", path);
+			// put boarder around states 
+			g.append("path")
+				.datum(topojson.mesh(topo, topo.objects.states, function(a, b) { return a !== b; }))
+				.attr("class", "mesh")
+				.attr("d", path);
 
-		     			// zooming and panning
+			// zooming and panning
 			var zoom = d3.behavior.zoom()
-			    .on("zoom",function(){
-			    	curr_zoom_translate = d3.event.translate;
-			    	curr_zoom_scale = d3.event.scale;
-			    	console.log(curr_zoom_translate);
-		    		console.log(curr_zoom_scale);
-			    	zoomTo(curr_zoom_translate, curr_zoom_scale);
-			    });
+				.on("zoom",function(){
+					curr_zoom_translate = d3.event.translate;
+					curr_zoom_scale = d3.event.scale;
+					zoomTo(curr_zoom_translate, curr_zoom_scale);
+					drawDataChart(data, projection);
+				});
 
 			var zoomTo = function(translate, scale) {
-			        g.attr("transform","translate("+ 
-			            translate.join(",")+")scale("+scale+")");
-			        g.selectAll("circle")
-			            .attr("d", path.projection(projection));
-			        g.selectAll("path")  
-			            .attr("d", path.projection(projection)); 
+				g.attr("transform","translate("+ translate.join(",")+")scale("+scale+")");
+				g.selectAll("circle").attr("d", path.projection(projection));
+				g.selectAll("path").attr("d", path.projection(projection));
 			};
 
-			d3.select("svg").call(zoom);
-			zoomTo(curr_zoom_translate, curr_zoom_scale);
+			d3.select(".mainMap").select("svg").call(zoom);
+			//zoomTo(curr_zoom_translate, curr_zoom_scale);
 		}
 
-		var drawPoints = function(data, year, g) {
+		var drawPoints = function(data, year) {
 			var filtered_data = data.filter(function(d) {
 				return d.FIRE_YEAR == year;
 			});
 
-			var g = d3.select("svg").select("g");
+			var g = d3.select(".mainMap").select("svg").select("g");
 
 			// Remove all previously drawn circles
 			g.selectAll("circle").remove();
 
-		    // add circles to svg
-		    g.selectAll("circle")
+			// add circles to svg
+			g.selectAll("circle")
 				.data(filtered_data)
 				.enter()
 				.append("circle")
-				.attr("cx", function (d) { return projection([d.LONGITUDE, d.LATITUDE])[0]; }) // Sets location of the wildfire datapoint
-				.attr("cy", function (d) { return projection([d.LONGITUDE, d.LATITUDE])[1]; }) // Sets location of the wildfire datapoint
-				.attr("r", function (d) { return firesize_class_radius[d.FIRE_SIZE_CLASS]; })  // Sets radius of the wildfire datapoint
-				.attr("fill", function(d) { return "red"});									   // Sets fill of the wildfire datapoint
-
+				.attr("id", function (d) { return d.OBJECT_ID; })
+				.attr("cx", function (d) { return projection([d.LONGITUDE, d.LATITUDE])[0]; }) 	// Sets location of the wildfire datapoint
+				.attr("cy", function (d) { return projection([d.LONGITUDE, d.LATITUDE])[1]; }) 	// Sets location of the wildfire datapoint
+				.attr("r", function (d) { return firesize_class_radius[d.FIRE_SIZE_CLASS]; })  	// Sets radius of the wildfire datapoint
+				.attr("fill", function(d) { return fire_causes_color_map[d.STAT_CAUSE_DESCR]; })// Sets fill of the wildfire datapoint
+				.on("mouseover",function(){
+					var id = d3.select(this).attr("id");
+					console.log(id);
+				});
 		}
+
+		// To do: Gene to draw data chart here
+		var drawDataChart = function(data, projection) {
+			// Set width and height of the dataChart
+			var width_datachart = 100;
+			var height_datachart = 100;
+
+			// Filter datsaset to only those that are in the map viewport
+			var nw = projection.invert([ 0, 0 ]);
+			var se = projection.invert([ map_width, map_height ]);
+			var filtered_data = data.filter(function(d){
+				// TO DO: double check that this logic correctly filters data in the viewport
+				return (d.LATITUDE >= se[0] && d.LATITUDE <= nw[0] && d.LONGITUDE >= nw[1] && d.LONGITUDE <= se[1]);
+			});
+
+			// Remove all previously drawn dataChart
+			d3.select(".dataChart").remove();
+
+			// Draw dataChart
+			var svg = d3.select(".dataChart").append("svg")
+				.attr("width", width_datachart)
+				.attr("height", height_datachart);
+
+			var g = svg.append("g");
+			/*
+				Code for drawing chart here using filtered_data as the dataset
+			*/
+		}
+
+		// To do: Mohammad to draw weather chart here
+		var drawWeatherChart = function (data, id) {
+			// This is the id of the data point 
+			console,log(id);
+
+			// Set width and height of the weatherChart
+			var width_weatherchart = 100;
+			var height_weatherchart = 100;
+
+			// Remove all previously drawn weatherChart
+			d3.select(".weatherChart").remove();
+
+			// Draw weatherChart
+			var svg = d3.select(".weatherChart").append("svg")
+				.attr("width", width_weatherchart)
+				.attr("height", height_weatherchart);
+
+			var g = svg.append("g");
+			/*
+				Code for drawing chart here
+			*/
+		}
+
+		var updateTitle = function(year){
+			d3.select("#title").text(function() { return "US Wildfires - " + year;});
+		}
+
 	});
 
+
+	
 	</script>
 </body>
 </html>
