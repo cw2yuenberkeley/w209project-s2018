@@ -6,6 +6,7 @@
 	<script src="http://d3js.org/topojson.v1.min.js"></script>
 	<script src="https://d3js.org/d3-time.v1.min.js"></script>
 	<script src="https://d3js.org/d3-time-format.v2.min.js"></script>
+	<script src="d3.legend.js"></script>
 
 	<style type="text/css">
 	.feature {
@@ -40,6 +41,12 @@
 	.yaxis path {
 		fill: #777;
 		stroke-opacity: 0.5;
+	}
+
+	.legend rect {
+  fill:white;
+  stroke:black;
+  opacity:0.8;
 	}
 
 	#tooltip {
@@ -79,6 +86,7 @@
 	<div class="sliderDiv"></div>
 	<div class="weatherChart"></div>
 	<div class="dataChart"></div>
+	<div class="legend"></div>
 	<div id="tooltip" class="hidden">
 			<p><strong>Key Info</strong></p>
 			<p><span id="value">100</span></p>
@@ -134,6 +142,7 @@
 								.attr("height", map_height);
 
 				var g = svg.append("g");
+
 
 				// Add slider
 				d3.select(".sliderDiv").append("text").text("Year: ");
@@ -205,6 +214,7 @@
 			});
 
 			var g = d3.select(".mainMap").select("svg").select("g");
+			// var inner = g.append("g")
 
 			// Remove all previously drawn circles
 			g.selectAll("circle").remove();
@@ -219,6 +229,7 @@
 				.attr("cy", function (d) { return projection([d.LONGITUDE, d.LATITUDE])[1]; }) 	// Sets location of the wildfire datapoint
 				.attr("r", function (d) { return firesize_class_radius[d.FIRE_SIZE_CLASS]; })  	// Sets radius of the wildfire datapoint
 				.attr("fill", function(d) { return fire_causes_color_map[d.STAT_CAUSE_DESCR]; })// Sets fill of the wildfire datapoint
+				.attr("data-legend", function(d) {return d.STAT_CAUSE_DESCR})
 				.on("mouseover",function(d){
 					var id = d3.select(this).attr("id");
 					drawWeatherChart(weather_data, id);
@@ -236,7 +247,24 @@
 				.on("mouseout", function() {
 					d3.select("#tooltip").classed("hidden",true);
 				});
+
+				// Create Legend
+
+				var legend = g.append("g")
+					.attr("class","legend")
+					// .attr("transform","translate(" + map_width - 1 + "," + "50)")
+					.attr("transform","translate(20,400)")
+					.style("font-size","12px")
+					.call(d3.legend)
+
+				setTimeout(function() {
+					legend
+						.style("font-size","12px")
+						.attr("data-style-padding",10)
+						.call(d3.legend)
+						},1000)
 		}
+
 
 
 		// To do: Gene to draw data chart here
