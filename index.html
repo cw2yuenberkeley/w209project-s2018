@@ -42,6 +42,35 @@
 		stroke-opacity: 0.5;
 	}
 
+	#tooltip {
+		position: absolute;
+		width: 200;
+		height: auto;
+		padding: 10px;
+		background-color: white;
+		-webkit-border-radius: 10px;
+		-mox-border-radius: 10px;
+		border-radius: 10px;
+		-webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+		-mox-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+		box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+		pointer-events: none;
+		/* white-space: pre-line; */
+		word-wrap: break-word;
+	}
+
+	#tooltip.hidden {
+		display: none;
+	}
+
+	#tooltip p{
+		margin: 0;
+		font-family: sans-serif;
+		font-size: 16px;
+		line-height: 20px;
+	}
+
+
 	</style>
 </head>
 <body>
@@ -50,6 +79,9 @@
 	<div class="sliderDiv"></div>
 	<div class="weatherChart"></div>
 	<div class="dataChart"></div>
+	<div id="tooltip" class="hidden">
+			<p><strong>Key Info</strong></p>
+			<p><span id="value">100</span></p>
 	<script type="text/javascript">
 
 	var map_width = 950,
@@ -57,11 +89,11 @@
 
 	// Maps fire class to a radius size
 	var firesize_class_radius = { "A": 3,
-								  "B": 5, 
-								  "C": 7, 
-								  "D": 9, 
-								  "E": 11, 
-								  "F": 13, 
+								  "B": 5,
+								  "C": 7,
+								  "D": 9,
+								  "E": 11,
+								  "F": 13,
 								  "G": 15 };
 
 	// Define possible fire causes (to use for colors)
@@ -90,7 +122,7 @@
 		.scale(900)
 		.center([-100, 40.5]);
 
-	d3.json("data/us.json", function(error, topo) { 
+	d3.json("data/us.json", function(error, topo) {
 		d3.csv("data/wildfires_10k_sample.csv", function(error, data) {
 			d3.csv("data/weather/combined/long/all_years_long.csv", function(error, weather_data) {
 				console.log(data);
@@ -131,7 +163,7 @@
 		  	// 	.attr("width", map_width)
 		  	// 	.attr("height", map_height)
 		  	// 	.attr("fill", "lightblue");
-			
+
 			var g = svg.select("g");
 
 			// add states from topojson
@@ -142,7 +174,7 @@
 				.style("fill", "white")
 				.attr("d", path);
 
-			// put boarder around states 
+			// put border around states
 			g.append("path")
 				.datum(topojson.mesh(topo, topo.objects.states, function(a, b) { return a !== b; }))
 				.attr("class", "mesh")
@@ -187,11 +219,25 @@
 				.attr("cy", function (d) { return projection([d.LONGITUDE, d.LATITUDE])[1]; }) 	// Sets location of the wildfire datapoint
 				.attr("r", function (d) { return firesize_class_radius[d.FIRE_SIZE_CLASS]; })  	// Sets radius of the wildfire datapoint
 				.attr("fill", function(d) { return fire_causes_color_map[d.STAT_CAUSE_DESCR]; })// Sets fill of the wildfire datapoint
-				.on("mouseover",function(){
+				.on("mouseover",function(d){
 					var id = d3.select(this).attr("id");
 					drawWeatherChart(weather_data, id);
+					// Tooltip on mouseover
+					var xPosition = d3.select(this).attr("cx");
+					var yPosition = d3.select(this).attr("cy");
+					d3.select("#tooltip")
+						.style("left", xPosition + "px")
+						.style("top", yPosition + "px")
+						.select("#value")
+						.html("Fire Name: " + d.FIRE_NAME + "<br/>" + "Year: " + d.FIRE_YEAR + "<br/>" + "Cause: " + d.STAT_CAUSE_DESCR)
+
+					d3.select("#tooltip").classed("hidden", false);
+				})
+				.on("mouseout", function() {
+					d3.select("#tooltip").classed("hidden",true);
 				});
 		}
+
 
 		// To do: Gene to draw data chart here
 		var drawDataChart = function(data, projection) {
@@ -223,7 +269,7 @@
 
 		// To do: Mohammad to draw weather chart here
 		var drawWeatherChart = function (weather_data, id) {
-			// This is the id of the data point 
+			// This is the id of the data point
 
 			var formatDate = d3.timeFormat("%Y-%m-%d");
 			var parseDate = d3.timeParse("%Y-%m-%d");
@@ -243,7 +289,7 @@
 			var height_data = 300;
 			var height_xaxis = 50;
 			var margin_weatherChart = {top: 50, right: 50, bottom: 20, left: 100};
-			
+
 			var width_data = width_weatherchart - margin_weatherChart.right - margin_weatherChart.left;
 			var width_xaxis = width_data;
 
@@ -346,7 +392,7 @@
 	});
 
 
-	
+
 	</script>
 </body>
 </html>
