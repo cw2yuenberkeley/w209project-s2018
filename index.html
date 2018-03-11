@@ -218,6 +218,7 @@
 
 			// Remove all previously drawn circles
 			g.selectAll("circle").remove();
+			g.selectAll("g").remove();
 
 			// add circles to svg
 			g.selectAll("circle")
@@ -253,7 +254,7 @@
 				var legend = g.append("g")
 					.attr("class","legend")
 					// .attr("transform","translate(" + map_width - 1 + "," + "50)")
-					.attr("transform","translate(20,400)")
+					.attr("transform","translate(20,375)")
 					.style("font-size","12px")
 					.call(d3.legend)
 
