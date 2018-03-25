@@ -234,7 +234,7 @@
 				.attr("data-legend", function(d) {return d.STAT_CAUSE_DESCR})
 				.on("mouseover",function(d){
 					var id = d3.select(this).attr("id");
-					drawWeatherChart(weather_data, id);
+					//drawWeatherChart(weather_data, id);
 
 					// Tooltip on mouseover
 					var filtered_data = data.filter(function(d){
