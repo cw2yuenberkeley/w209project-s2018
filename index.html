@@ -44,9 +44,9 @@
 	}
 
 	.legend rect {
-  fill:white;
-  stroke:black;
-  opacity:0.8;
+	  fill:white;
+	  stroke:black;
+	  opacity:0.8;
 	}
 
 	#tooltip {
@@ -76,8 +76,6 @@
 		font-size: 16px;
 		line-height: 20px;
 	}
-
-
 	</style>
 </head>
 <body>
@@ -120,15 +118,14 @@
 					              "Structure": "#aa6e28"};
 
 	// set projection
-	var projection = d3.geo.mercator();
+	var projection = d3.geo.albers();
 
 	// create path variable
 	var path = d3.geo.path().projection(projection);
 
-	// set projection parameters
-	projection
-		.scale(900)
-		.center([-100, 40.5]);
+	var curr_zoom_translate;
+	var curr_zoom_scale;
+	var curr_year = 2000;
 
 	d3.json("data/us.json", function(error, topo) {
 		d3.csv("data/wildfires_10k_sample.csv", function(error, data) {
@@ -136,13 +133,19 @@
 				console.log(data);
 				console.log(weather_data);
 
+				// build id --> latitude/latittude map
+				var lat_long_year_map = {};
+				for (var i = 0; i < data.length; i++) {
+					var d = data[i];
+					lat_long_year_map[String(d.OBJECT_ID)] = [d.LATITUDE, d.LONGITUDE, d.FIRE_YEAR];
+				}
+
 				// create svg variable
 				var svg = d3.select(".mainMap").append("svg")
 								.attr("width", map_width)
 								.attr("height", map_height);
 
 				var g = svg.append("g");
-
 
 				// Add slider
 				d3.select(".sliderDiv").append("text").text("Year: ");
@@ -154,24 +157,22 @@
 					.attr("min", 2000)
 					.attr("max", 2015)
 					.on("input", function() {
-						drawPoints(data, weather_data, parseInt(this.value));
-						updateTitle(this.value);
+						curr_year = parseInt(this.value);
+						drawPoints(data, weather_data, curr_year);
+						findViewportLatLong(data, lat_long_year_map, curr_zoom_translate, curr_zoom_scale, curr_year);
+						updateTitle(curr_year);
 					});
 
-				drawMap(data, topo, path, projection);
-				drawPoints(data, weather_data, 2000);
-				updateTitle(2000);
+				drawMap(data, topo, path, projection, lat_long_year_map, curr_year);
+				drawPoints(data, weather_data, curr_year);
+				updateTitle(curr_year);
 			});
 		});
 
-		var drawMap = function(data, topo, path, projection) {
+		var drawMap = function(data, topo, path, projection, lat_long_year_map, curr_year) {
 		  	states = topojson.feature(topo, topo.objects.states).features;
 
 		  	var svg = d3.select(".mainMap").select("svg");
-		  	// var r = svg.append("rect")
-		  	// 	.attr("width", map_width)
-		  	// 	.attr("height", map_height)
-		  	// 	.attr("fill", "lightblue");
 
 			var g = svg.select("g");
 
@@ -195,17 +196,16 @@
 					curr_zoom_translate = d3.event.translate;
 					curr_zoom_scale = d3.event.scale;
 					zoomTo(curr_zoom_translate, curr_zoom_scale);
-					drawDataChart(data, projection);
+					if (curr_zoom_translate != null && curr_zoom_scale != null) {
+						findViewportLatLong(data, lat_long_year_map, curr_zoom_translate, curr_zoom_scale, curr_year);
+					}
 				});
 
 			var zoomTo = function(translate, scale) {
 				g.attr("transform","translate("+ translate.join(",")+")scale("+scale+")");
-				g.selectAll("circle").attr("d", path.projection(projection));
-				g.selectAll("path").attr("d", path.projection(projection));
 			};
 
 			d3.select(".mainMap").select("svg").call(zoom);
-			//zoomTo(curr_zoom_translate, curr_zoom_scale);
 		}
 
 		var drawPoints = function(data, weather_data, year) {
@@ -226,6 +226,7 @@
 				.enter()
 				.append("circle")
 				.attr("id", function (d) { return d.OBJECT_ID; })
+				.attr("class", function (d) { return "p" + d.OBJECT_ID; })
 				.attr("cx", function (d) { return projection([d.LONGITUDE, d.LATITUDE])[0]; }) 	// Sets location of the wildfire datapoint
 				.attr("cy", function (d) { return projection([d.LONGITUDE, d.LATITUDE])[1]; }) 	// Sets location of the wildfire datapoint
 				.attr("r", function (d) { return firesize_class_radius[d.FIRE_SIZE_CLASS]; })  	// Sets radius of the wildfire datapoint
@@ -234,12 +235,18 @@
 				.on("mouseover",function(d){
 					var id = d3.select(this).attr("id");
 					drawWeatherChart(weather_data, id);
+
 					// Tooltip on mouseover
-					var xPosition = d3.select(this).attr("cx");
-					var yPosition = d3.select(this).attr("cy");
+					var filtered_data = data.filter(function(d){
+						return d.OBJECT_ID == id;
+					});
+
+					var lat = filtered_data[0].LATITUDE;
+					var long = filtered_data[0].LONGITUDE;
+
 					d3.select("#tooltip")
-						.style("left", xPosition + "px")
-						.style("top", yPosition + "px")
+						.style("left", d3.select(this).attr("cx") + "px")
+						.style("top", d3.select(this).attr("cy") + "px")
 						.select("#value")
 						.html("Fire Name: " + d.FIRE_NAME + "<br/>" + "Year: " + d.FIRE_YEAR + "<br/>" + "Cause: " + d.STAT_CAUSE_DESCR)
 
@@ -250,7 +257,6 @@
 				});
 
 				// Create Legend
-
 				var legend = g.append("g")
 					.attr("class","legend")
 					// .attr("transform","translate(" + map_width - 1 + "," + "50)")
@@ -266,34 +272,46 @@
 						},1000)
 		}
 
+		// Finds the min and max lat and longs of the data points in the viewport
+		var findViewportLatLong = function(data, lat_long_year_map, translate, scale, curr_year) {	
+			var min_lat = Number.MAX_SAFE_INTEGER;
+			var max_lat = Number.MIN_SAFE_INTEGER;
+			var min_long = Number.MAX_SAFE_INTEGER;
+			var max_long = Number.MIN_SAFE_INTEGER;
 
+			var count = 0;
 
-		// To do: Gene to draw data chart here
-		var drawDataChart = function(data, projection) {
-			// Set width and height of the dataChart
-			var width_datachart = 100;
-			var height_datachart = 100;
+			var cs = d3.selectAll("circle")[0];
+			for (var i = 0; i < cs.length; i++) {
+				var c = cs[i];
 
-			// Filter datsaset to only those that are in the map viewport
-			var nw = projection.invert([ 0, 0 ]);
-			var se = projection.invert([ map_width, map_height ]);
-			var filtered_data = data.filter(function(d){
-				// TO DO: double check that this logic correctly filters data in the viewport
-				return (d.LATITUDE >= se[0] && d.LATITUDE <= nw[0] && d.LONGITUDE >= nw[1] && d.LONGITUDE <= se[1]);
-			});
+				if (c != null && c.attributes != null && c.attributes.id != null) {
+					count++;
+					var id = c.attributes.id.value;
+					var cx = c.attributes.cx.value;
+					var cy = c.attributes.cy.value;
+					var transformed_cx = (cx * scale) + translate[0];
+					var transformed_cy = (cy * scale) + translate[1];
+					var lat = lat_long_year_map[id][0];
+					var long = lat_long_year_map[id][1];
+					var year = lat_long_year_map[id][2];
+					
+					// Check if circle is in the viewport
+					if (transformed_cx > 0 && transformed_cy > 0 && transformed_cx <= map_width && transformed_cy <= map_height && year == curr_year) {
+						// Check if the circle is the max or min lat/long so far. If so, update the max/min lat/long
+						if (lat < min_lat) { min_lat = lat; }
+						if (lat > max_lat) { max_lat = lat; }
+						if (lat < min_long) { min_long = long; }
+						if (lat > max_long) { max_long = long; }
+						count++;
+					}
+				}
+			}
 
-			// Remove all previously drawn dataChart
-			d3.select(".dataChart").remove();
-
-			// Draw dataChart
-			var svg = d3.select(".dataChart").append("svg")
-				.attr("width", width_datachart)
-				.attr("height", height_datachart);
-
-			var g = svg.append("g");
-			/*
-				Code for drawing chart here using filtered_data as the dataset
-			*/
+			ret_arr = [ min_lat, max_lat, min_long, max_long ];
+			console.log(ret_arr);
+			console.log(count);
+			return ret_arr;
 		}
 
 		// To do: Mohammad to draw weather chart here
@@ -310,8 +328,6 @@
 			filtered_weather_data.sort(function(x, y){
    				return d3.ascending(parseDate(x.OBS_DATE), parseDate(y.OBS_DATE));
 			})
-
-			console.log(filtered_weather_data);
 
 			// Set width of all chart components
 			var width_weatherchart = 950;
@@ -419,8 +435,6 @@
 		}
 
 	});
-
-
 
 	</script>
 </body>
