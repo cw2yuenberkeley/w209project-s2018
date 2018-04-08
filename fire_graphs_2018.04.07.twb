@@ -38,7 +38,7 @@
         <calculation class='tableau' formula='-67.433333329999996' />
       </column>
     </datasource>
-    <datasource caption='all_years_long' inline='true' name='federated.1to3mog1qiin5914360ms1cm0mms' version='10.5'>
+    <datasource caption='10k_fires' inline='true' name='federated.1to3mog1qiin5914360ms1cm0mms' version='10.5'>
       <connection class='federated'>
         <named-connections>
           <named-connection caption='10k_fire_dates' name='textscan.0mpxq1z003psv6111is850jea5bd'>
@@ -1324,7 +1324,7 @@
   <shared-views>
     <shared-view name='federated.1to3mog1qiin5914360ms1cm0mms'>
       <datasources>
-        <datasource caption='all_years_long' name='federated.1to3mog1qiin5914360ms1cm0mms' />
+        <datasource caption='10k_fires' name='federated.1to3mog1qiin5914360ms1cm0mms' />
       </datasources>
       <datasource-dependencies datasource='federated.1to3mog1qiin5914360ms1cm0mms'>
         <column caption='year_filter' datatype='boolean' name='[Calculation_3097491433110601728]' role='dimension' type='nominal'>
@@ -1358,7 +1358,7 @@
       <table>
         <view>
           <datasources>
-            <datasource caption='all_years_long' name='federated.1to3mog1qiin5914360ms1cm0mms' />
+            <datasource caption='10k_fires' name='federated.1to3mog1qiin5914360ms1cm0mms' />
             <datasource name='Parameters' />
           </datasources>
           <datasource-dependencies datasource='Parameters'>
@@ -1444,7 +1444,7 @@
       <table>
         <view>
           <datasources>
-            <datasource caption='all_years_long' name='federated.1to3mog1qiin5914360ms1cm0mms' />
+            <datasource caption='10k_fires' name='federated.1to3mog1qiin5914360ms1cm0mms' />
             <datasource name='Parameters' />
           </datasources>
           <datasource-dependencies datasource='Parameters'>
@@ -1525,7 +1525,7 @@
       <table>
         <view>
           <datasources>
-            <datasource caption='all_years_long' name='federated.1to3mog1qiin5914360ms1cm0mms' />
+            <datasource caption='10k_fires' name='federated.1to3mog1qiin5914360ms1cm0mms' />
             <datasource name='Parameters' />
           </datasources>
           <datasource-dependencies datasource='Parameters'>
@@ -1606,7 +1606,7 @@
       <table>
         <view>
           <datasources>
-            <datasource caption='all_years_long' name='federated.1to3mog1qiin5914360ms1cm0mms' />
+            <datasource caption='10k_fires' name='federated.1to3mog1qiin5914360ms1cm0mms' />
             <datasource name='Parameters' />
           </datasources>
           <datasource-dependencies datasource='Parameters'>
@@ -1679,7 +1679,7 @@
       <table>
         <view>
           <datasources>
-            <datasource caption='all_years_long' name='federated.1to3mog1qiin5914360ms1cm0mms' />
+            <datasource caption='10k_fires' name='federated.1to3mog1qiin5914360ms1cm0mms' />
             <datasource name='Parameters' />
           </datasources>
           <mapsources>
@@ -1838,7 +1838,7 @@
       <table>
         <view>
           <datasources>
-            <datasource caption='all_years_long' name='federated.1to3mog1qiin5914360ms1cm0mms' />
+            <datasource caption='10k_fires' name='federated.1to3mog1qiin5914360ms1cm0mms' />
             <datasource name='Parameters' />
           </datasources>
           <datasource-dependencies datasource='Parameters'>
@@ -1911,7 +1911,7 @@
       <table>
         <view>
           <datasources>
-            <datasource caption='all_years_long' name='federated.1to3mog1qiin5914360ms1cm0mms' />
+            <datasource caption='10k_fires' name='federated.1to3mog1qiin5914360ms1cm0mms' />
             <datasource name='Parameters' />
           </datasources>
           <mapsources>
@@ -2093,7 +2093,7 @@
       <style />
       <size maxheight='800' maxwidth='1000' minheight='800' minwidth='1000' />
       <datasources>
-        <datasource caption='all_years_long' name='federated.1to3mog1qiin5914360ms1cm0mms' />
+        <datasource caption='10k_fires' name='federated.1to3mog1qiin5914360ms1cm0mms' />
       </datasources>
       <datasource-dependencies datasource='federated.1to3mog1qiin5914360ms1cm0mms'>
         <column caption='Start Date' datatype='date' name='[START_DATE]' role='dimension' type='ordinal' />
