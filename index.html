@@ -294,10 +294,11 @@
 			var y = d3.scale.linear()
 			    .range([height, 0])
 			    .domain([0, d3.max(yearlyFireCounts, function(d) { return d.values + 100; })]);
-
+			
 			var xAxis = d3.svg.axis()
-			    .scale(x)
-			    .orient("bottom")
+                .scale(x)
+                .orient("bottom")
+                    .tickFormat(d3.format('d'));
 
 			var yAxis = d3.svg.axis()
 			    .scale(y)
