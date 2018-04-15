@@ -31,7 +31,33 @@
 
 </head>
 <body>
-	<div id="tableau_viz"></div>
+
+	<div id="container" style="width:100%">
+	<div id="tableau_viz" style="float:left; width:75%;"></div>
+	<div id="narrative" style="float:right; width:25%;">
+		
+		<h2 align="left">Common causes of Wildfires.</h2>
+		<p align="left">
+			This page shows the common causes of wildfires.<br/>
+			You can click on the graphs to filter by the Cause of fires.<br/>
+			Or, you can use the filters on the right hand side of the charts.
+		</p>
+
+		<h3 align="left">Goal: Find main causes of Wild Fires.</h3>
+		<p align="left">
+			<h4>
+				<ol>
+					<li>Find the most common Cause of wildfire.</li>
+					<br/>
+					<li>Which Cause results in the longest or largest wildifre?</li>
+					<br/>
+					<li>Which Causes have grown in significance over time?</li>
+				</ol>
+			</h4>
+		</p>
+	</div>		
+	</div>
+
 	<script>
 		var historic_trends_url = 'https://public.tableau.com/views/fire_weather_graphs/HistoricTrends?:showVizHome=no&:toolbar=no&:display_count=no&:embed=true&:tabs=no'
 		var regional_trends_url = 'https://public.tableau.com/views/fire_weather_graphs/RegionalTrends?:showVizHome=no&:toolbar=no&:display_count=no&:embed=true&:tabs=no'
@@ -41,8 +67,8 @@
 		var tableauvizOptions = {
 			showTabs           : false,
 			hideToolbar        : true,
-			width              : "1440px",
-			height             : "1080px"
+			width              : "1000px",
+			height             : "1000px"
 		};
 		
 		currentViz_right = new tableauSoftware.Viz(document.getElementById('tableau_viz'), common_causes_url, tableauvizOptions);
