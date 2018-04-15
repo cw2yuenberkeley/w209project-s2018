@@ -31,6 +31,11 @@
 	}
 	#title {
 		font-size: 28px;
+		margin-left: 30px;
+	}
+
+	#title_bar {
+  		display: flex;
 	}
 
 	#tooltip {

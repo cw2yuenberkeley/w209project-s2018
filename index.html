@@ -52,7 +52,43 @@
 		<p><span id="latitude"></span></p>
 		<p><span id="longitude"></span></p>
 	</div>
-
+	<div id="narrative" style="float:left; width: 800px; word-wrap: break-word; margin-left:35px; margin-top:100px; margin-bottom:100px;">
+		<h2 align="left">US Wildfires Interactive Visualization</h2>
+		<p align="left">
+			This page contains an integrated, interactive visualization of US Wildfires that occured between 1992 and 2015. The Wildfire records are from federal, state, local fire organizations, and represents 140 million acres burned during 24-year period. The data were transformed to conform, when possible, to the data standards of the National Wildfire Coordinating Group (NWCG). Basic error-checking was performed and redundant records were identified and removed, to the degree possible. The resulting product, referred to as the Fire Program Analysis fire-occurrence database (FPA FOD), includes 1.88 million geo-referenced wildfire records, representing a total of 140 million acres burned during the 24-year.
+			<br/><br/>
+			Details of the dataset can be found on Kaggle - <a href="https://www.kaggle.com/rtatman/188-million-us-wildfires">Link to Kaggle data description</a>
+			<br/><br/>
+		</p>
+		<h3 align="left">Goal: Understanding Relationships Between Wildfire Regions, Causes and Historical Trends.</h3>
+		<p align="left">
+			<ol>
+				<li>Which year in the available dataset has the most wildfires throughout US?</li>
+				<br/>
+				<li>What is the most common cause of wildfires?</li>
+				<br/>
+				<li>Which year has the least arson wildfires throughout the US?</li>
+				<br/>
+				<li>Find which state has the largest wildfires? What were the causes of those wildfires?</li>
+				<br/>
+				<li>What wildfire causes result in the longest or largest wildfires?</li>
+			</ol>
+		</p>
+		<h3 align="left">Insights and Actions</h3>
+		<p align="left">
+			<ol>
+				<li>Between 1994 and 2015, 2006 had the most number of wildfires. Interestingly, while the biggest number of wildfires by cause in 2006 is Debris Burning, the longest wildfires on average turns out to be Lightning. The largest average wildfire cause in 2006 is Lightning.<br/>
+				You can see this by filtering the visualizations to 2006.</li>	
+				<br/>			
+				<li>All Wildfire data for Hawaii and Puerto Rico in the available dataset tend have "Missing/Undefined" cause. One action is to work with NWCG to update the dataset for these regions to learn more about these wildfires.<br/>
+				You can see this by panning and zooming the map to Puero Rico and Hawaii, and see the data across all years.</li>
+				<br/>
+				<li>Majority of Debris Burning wildfires tend to be in the south-east part of the US. One action is to work with the south-east states on better preventive measures to reduce debris burning wildfires.<br/>
+				You can see this by planning and zooming the map to the south-east region of the US and see the data across all years.
+				</li>
+			</ol>
+		</p>		
+	</div>
 	<!--<div class="legend"></div>-->
 
 	<script nonce=EDNnf03nceIOfn39fn3e9h3sdfa>
@@ -289,7 +325,7 @@
 
 			var x = d3.scale.linear()
 			    .range([0, width])
-			    .domain([1991, 2016]);
+			    .domain([1991.5, 2015.5]);
 
 			var y = d3.scale.linear()
 			    .range([height, 0])
