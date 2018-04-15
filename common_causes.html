@@ -34,7 +34,7 @@
 
 	<div id="container" style="width:100%">
 	<div id="tableau_viz" style="float:left; width:75%;"></div>
-	<div id="narrative" style="float:right; width:25%;">
+	<div id="narrative" style="float:left; width: 300px; word-wrap: break-word;">
 		
 		<h2 align="left">Common causes of Wildfires.</h2>
 		<p align="left">
@@ -45,16 +45,24 @@
 
 		<h3 align="left">Goal: Find main causes of Wild Fires.</h3>
 		<p align="left">
-			<h4>
-				<ol>
-					<li>Find the most common Cause of wildfire.</li>
-					<br/>
-					<li>Which Cause results in the longest or largest wildifre?</li>
-					<br/>
-					<li>Which Causes have grown in significance over time?</li>
-				</ol>
-			</h4>
+			<ol>
+				<li>Find the most common Cause of wildfire.</li>
+				<br/>
+				<li>Which Cause results in the longest or largest wildifre?</li>
+				<br/>
+				<li>Which Causes have grown in significance over time?</li>
+			</ol>
 		</p>
+		<h3 align="left">Insights</h3>
+		<p align="left">
+			<ol>
+				<li>It's surprising to see that most wildfires result from Causes that have an element of human involvement.<br/>
+				You can see this by filtering to specific Causes in the graphs.</li>	
+				<br/>			
+				<li>Arson, and Debris Burning account for the most wildfires among causes that have human involvement.<br/>
+				You can see this by filtering to specific Causes in the graphs.</li>
+			</ol>
+		</p>				
 	</div>		
 	</div>
 
@@ -67,8 +75,8 @@
 		var tableauvizOptions = {
 			showTabs           : false,
 			hideToolbar        : true,
-			width              : "1000px",
-			height             : "1000px"
+			width              : "1080px",
+			height             : "1080px"
 		};
 		
 		currentViz_right = new tableauSoftware.Viz(document.getElementById('tableau_viz'), common_causes_url, tableauvizOptions);
